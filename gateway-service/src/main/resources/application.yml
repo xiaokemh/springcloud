@@ -1,0 +1,44 @@
+spring:
+  cloud:
+    gateway:
+      routes: #路由规则
+        - id: cds
+          uri: lb://cds
+          predicates:
+            - Path=/cds/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@apiKeyResolver}"   #限流的策略
+                redis-rate-limiter.replenishRate: 50 #允许用户每秒处理多少个请求
+                redis-rate-limiter.burstCapacity: 80 #令牌桶的容量，允许在一秒钟内完成的最大请求数
+            - StripPrefix=1
+        - id: moc
+          uri: lb://moc
+          predicates:
+            - Path=/moc/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@apiKeyResolver}"
+                redis-rate-limiter.replenishRate: 50
+                redis-rate-limiter.burstCapacity: 80
+            - StripPrefix=1
+        - id: zyss
+          uri: lb://zyss
+          predicates:
+            - Path=/zyss/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@apiKeyResolver}"
+                redis-rate-limiter.replenishRate: 50
+                redis-rate-limiter.burstCapacity: 80
+            - StripPrefix=1
+  profiles:
+    active: produce  #默认produce生产模式;dev开发模式
+
+eureka:
+  instance:
+    instanceId: ${spring.cloud.client.ip-address}:${server.port} #服务实例id
+    prefer-ip-address: true #优先使用IP地址注册
